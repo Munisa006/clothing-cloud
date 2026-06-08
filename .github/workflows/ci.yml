@@ -92,7 +92,7 @@ jobs:
     needs: docker
     if: >-
       github.ref == 'refs/heads/main' &&
-      github.event_name == 'push' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       vars.EC2_HOST != ''
 
     steps:
@@ -127,4 +127,5 @@ jobs:
             --exclude '.git' \
             --exclude 'backend/node_modules' \
             ./ "$EC2_USER@$EC2_HOST:$APP_DIR/"
-          ssh "$EC2_USER@$EC2_HOST" "cd $APP_DIR && docker compose up -d --build"
+          ssh "$EC2_USER@$EC2_HOST" "cd $APP_DIR && docker compose --profile loadbalanced up -d --build"
+          ssh "$EC2_USER@$EC2_HOST" "curl --fail http://localhost:3000/health"
