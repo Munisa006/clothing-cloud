@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Meridian — wholesale apparel portal. Live trade pricing, bulk fulfilment and multi-warehouse stock." />
+  <title>Meridian · Wholesale Apparel Portal</title>
+  <link rel="stylesheet" href="/vendor/inter.css" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="/vendor/lucide.min.js" defer></script>
+</head>
+<body>
+  <a href="#catalogue" class="skip-link">Skip to catalogue</a>
+
+  <header class="topbar">
+    <a href="#top" class="brand" aria-label="Meridian Wholesale — home">
+      <span class="mark" aria-hidden="true"><i data-lucide="shirt"></i></span>
+      <span class="wordmark">Meridian</span>
+      <span class="tagline">Wholesale Apparel</span>
+    </a>
+    <nav class="topnav" aria-label="Primary">
+      <a href="#catalogue" class="nav-text"><i data-lucide="layout-grid" aria-hidden="true"></i> Catalogue</a>
+      <button class="track-btn" id="trackLink" aria-label="Track an order"><i data-lucide="package-search" aria-hidden="true"></i> <span class="nav-label">Track order</span></button>
+      <a href="/admin" class="staff-link"><i data-lucide="lock" aria-hidden="true"></i> <span class="nav-label">Staff</span></a>
+      <button class="cart-btn" id="cartLink" aria-label="Open your order" aria-haspopup="dialog">
+        <i data-lucide="shopping-cart" aria-hidden="true"></i>
+        <span class="nav-label">Order</span>
+        <span class="badge" id="cartCount" aria-hidden="true">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <span id="top"></span>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow"><i data-lucide="badge-check" aria-hidden="true"></i> Trade pricing · Bulk fulfilment · Multi-warehouse stock</p>
+      <h1>Wholesale apparel,<br /><em>delivered at scale.</em></h1>
+      <p class="lede">Live stock across our regional warehouses, trade pricing per pack, and purchase orders raised in minutes — no minimums beyond the pack.</p>
+      <div class="hero-actions">
+        <a href="#catalogue" class="primary hero-cta"><i data-lucide="layout-grid" aria-hidden="true"></i> Browse catalogue</a>
+        <div class="hero-stats">
+          <span><strong id="statSkus">—</strong> SKUs in stock</span>
+          <span class="dot" aria-hidden="true"></span>
+          <span><strong id="statCats">—</strong> categories</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section id="catalogue" class="catalogue" aria-labelledby="catalogueHeading">
+      <div class="catalogue-head">
+        <div>
+          <h2 id="catalogueHeading">Catalogue</h2>
+          <p class="catalogue-sub" id="resultCount" aria-live="polite"></p>
+        </div>
+        <div class="filters">
+          <div class="search-wrap">
+            <i data-lucide="search" aria-hidden="true"></i>
+            <label class="visually-hidden" for="search">Search the catalogue</label>
+            <input type="search" id="search" placeholder="Search by name or SKU…" />
+          </div>
+          <div class="select-wrap">
+            <label class="visually-hidden" for="categoryFilter">Filter by category</label>
+            <select id="categoryFilter"><option value="">All categories</option></select>
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+      <div class="chip-row" id="chipRow" role="group" aria-label="Filter by category"></div>
+      <div class="grid" id="productGrid" aria-busy="true"></div>
+    </section>
+  </main>
+
+  <!-- Order drawer -->
+  <aside class="drawer" id="cart" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+    <div class="drawer-head">
+      <h2 id="drawerTitle"><i data-lucide="shopping-bag" aria-hidden="true"></i> Your order</h2>
+      <button class="icon-btn" id="closeCart" aria-label="Close order"><i data-lucide="x" aria-hidden="true"></i></button>
+    </div>
+    <div class="drawer-body" id="cartItems"></div>
+    <div class="drawer-foot">
+      <div class="total-row"><span>Order total</span><strong id="cartTotal">$0.00</strong></div>
+      <form id="checkoutForm" novalidate>
+        <div class="field">
+          <label for="buyerName">Business / buyer name</label>
+          <input type="text" id="buyerName" name="buyerName" autocomplete="organization" required />
+          <span class="field-error" id="buyerNameError" aria-live="polite"></span>
+        </div>
+        <div class="field">
+          <label for="buyerEmail">Email for confirmation</label>
+          <input type="email" id="buyerEmail" name="buyerEmail" autocomplete="email" required />
+          <span class="field-error" id="buyerEmailError" aria-live="polite"></span>
+        </div>
+        <button type="submit" class="primary" id="placeOrderBtn"><i data-lucide="check-circle" aria-hidden="true"></i> Place purchase order</button>
+      </form>
+      <p class="drawer-note" id="orderResult" aria-live="polite"></p>
+    </div>
+  </aside>
+  <div class="overlay" id="overlay" hidden></div>
+
+  <!-- Track order modal -->
+  <div class="modal-overlay" id="trackOverlay" hidden>
+    <div class="track-modal" role="dialog" aria-modal="true" aria-labelledby="trackTitle">
+      <div class="track-head">
+        <h2 id="trackTitle"><i data-lucide="package-search" aria-hidden="true"></i> Track an order</h2>
+        <button class="icon-btn" id="closeTrack" aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+      <form id="trackForm" novalidate>
+        <div class="field">
+          <label for="trackRef">Order reference</label>
+          <div class="track-input-row">
+            <input type="text" id="trackRef" placeholder="ORD-XXXXXXXX" autocomplete="off" spellcheck="false" />
+            <button type="submit" class="primary" id="trackBtn"><i data-lucide="search" aria-hidden="true"></i> Look up</button>
+          </div>
+          <span class="field-error" id="trackError" aria-live="polite"></span>
+        </div>
+      </form>
+      <div class="track-result" id="trackResult" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Meridian Wholesale · cloud-hosted demo portal</span>
+    <span id="servedBy" class="served-by"></span>
+  </footer>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meridian · Operations Console</title>
+  <link rel="stylesheet" href="/admin/vendor/inter.css" />
+  <link rel="stylesheet" href="/admin/admin.css" />
+  <script src="/admin/vendor/lucide.min.js" defer></script>
+</head>
+<body>
+  <!-- Login -->
+  <div class="login-screen" id="loginScreen">
+    <form class="login-card" id="loginForm" novalidate>
+      <div class="login-brand"><span class="mark" aria-hidden="true"><i data-lucide="shirt"></i></span> Meridian <span class="sub">Operations Console</span></div>
+      <p class="login-hint">Back office for ERP · CRM · WMS</p>
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required />
+      </div>
+
+      <button type="submit" class="primary" id="loginBtn"><i data-lucide="log-in" aria-hidden="true"></i> Sign in</button>
+      <p class="login-error" id="loginError" role="alert" aria-live="assertive"></p>
+
+      <div class="login-demo">
+        <p style="font-size: 0.85rem; margin: 0.5rem 0 0.75rem; color: #666;">Demo accounts (password: role+123)</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <button type="button" class="ghost ghost-sm" data-demo-user="admin" title="Full access">
+            <i data-lucide="shield" aria-hidden="true" style="width: 16px; height: 16px;"></i> Admin
+          </button>
+          <button type="button" class="ghost ghost-sm" data-demo-user="manager" title="Manage catalogue & orders">
+            <i data-lucide="briefcase" aria-hidden="true" style="width: 16px; height: 16px;"></i> Manager
+          </button>
+          <button type="button" class="ghost ghost-sm" data-demo-user="erp_mgr" title="ERP management">
+            <i data-lucide="cog" aria-hidden="true" style="width: 16px; height: 16px;"></i> ERP Manager
+          </button>
+          <button type="button" class="ghost ghost-sm" data-demo-user="crm_mgr" title="CRM management">
+            <i data-lucide="users" aria-hidden="true" style="width: 16px; height: 16px;"></i> CRM Manager
+          </button>
+          <button type="button" class="ghost ghost-sm" data-demo-user="wms_mgr" title="Warehouse management">
+            <i data-lucide="package" aria-hidden="true" style="width: 16px; height: 16px;"></i> WMS Manager
+          </button>
+          <button type="button" class="ghost ghost-sm" data-demo-user="sales" title="Sales representative">
+            <i data-lucide="phone" aria-hidden="true" style="width: 16px; height: 16px;"></i> Sales Rep
+          </button>
+          <button type="button" class="ghost ghost-sm" data-demo-user="warehouse" title="Warehouse staff">
+            <i data-lucide="box" aria-hidden="true" style="width: 16px; height: 16px;"></i> Warehouse
+          </button>
+          <button type="button" class="ghost ghost-sm" data-demo-user="viewer" title="Read-only access">
+            <i data-lucide="eye" aria-hidden="true" style="width: 16px; height: 16px;"></i> Viewer
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Console -->
+  <div class="console" id="console" hidden>
+    <aside class="sidebar" id="sidebar">
+      <div class="side-brand"><span class="mark" aria-hidden="true"><i data-lucide="shirt"></i></span> Meridian</div>
+      <nav aria-label="Sections" id="primaryNav">
+        <p class="nav-group-label">Operations</p>
+        <button class="nav-btn active" data-view="dashboard"><i data-lucide="layout-dashboard" aria-hidden="true"></i> Dashboard</button>
+        <button class="nav-btn" data-view="products"><i data-lucide="package" aria-hidden="true"></i> Catalogue</button>
+        <button class="nav-btn" data-view="orders"><i data-lucide="receipt" aria-hidden="true"></i> Orders</button>
+
+        <p class="nav-group-label" data-role-min="crm_manager" hidden>CRM</p>
+        <button class="nav-btn" data-view="customers" data-role-min="crm_manager" hidden><i data-lucide="users" aria-hidden="true"></i> Customers</button>
+        <button class="nav-btn" data-view="interactions" data-role-min="crm_manager" hidden><i data-lucide="message-square" aria-hidden="true"></i> Interactions</button>
+
+        <p class="nav-group-label" data-role-min="wms_manager" hidden>WMS</p>
+        <button class="nav-btn" data-view="warehouses" data-role-min="wms_manager" hidden><i data-lucide="building" aria-hidden="true"></i> Warehouses</button>
+        <button class="nav-btn" data-view="inventory" data-role-min="wms_manager" hidden><i data-lucide="box" aria-hidden="true"></i> Inventory</button>
+        <button class="nav-btn" data-view="stock-movements" data-role-min="wms_manager" hidden><i data-lucide="move" aria-hidden="true"></i> Movements</button>
+
+        <p class="nav-group-label" data-role-min="erp_manager" hidden>ERP</p>
+        <button class="nav-btn" data-view="purchase-orders" data-role-min="erp_manager" hidden><i data-lucide="file-text" aria-hidden="true"></i> Purchase Orders</button>
+        <button class="nav-btn" data-view="reports" data-role-min="erp_manager" hidden><i data-lucide="bar-chart-2" aria-hidden="true"></i> Reports</button>
+
+        <p class="nav-group-label" data-role-min="admin" hidden>Administration</p>
+        <button class="nav-btn" data-view="users" data-role-min="admin" hidden><i data-lucide="lock" aria-hidden="true"></i> Users</button>
+      </nav>
+      <div class="side-foot">
+        <p class="side-env"><i data-lucide="server" aria-hidden="true"></i> <span id="sideInstance">cloud node</span></p>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <!-- Topbar -->
+      <header class="topbar">
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Toggle navigation"><i data-lucide="menu" aria-hidden="true"></i></button>
+        <div class="crumbs"><span class="crumb-root">Console</span> <i data-lucide="chevron-right" aria-hidden="true"></i> <span id="crumbCurrent">Dashboard</span></div>
+        <div class="topbar-right">
+          <div class="usermenu" id="userMenu">
+            <button class="usermenu-btn" id="userMenuBtn" aria-haspopup="true" aria-expanded="false">
+              <span class="avatar" id="userAvatar" aria-hidden="true">··</span>
+              <span class="usermenu-meta">
+                <span class="usermenu-name" id="userName">—</span>
+                <span class="role-badge" id="userRole">—</span>
+              </span>
+              <i data-lucide="chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="usermenu-pop" id="userMenuPop" role="menu" hidden>
+              <div class="usermenu-head">
+                <div class="usermenu-name" id="popName">—</div>
+                <div class="usermenu-sub" id="popUsername">—</div>
+              </div>
+              <button class="usermenu-item" id="logoutBtn" role="menuitem"><i data-lucide="log-out" aria-hidden="true"></i> Sign out</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+      <!-- Dashboard -->
+      <section class="view" id="view-dashboard" aria-labelledby="dashHeading">
+        <div class="view-head"><div>
+          <h1 id="dashHeading">Operations dashboard</h1>
+          <p class="view-sub">Live figures aggregated from the orders and catalogue tables.</p>
+        </div></div>
+        <div class="stat-grid" id="statGrid"></div>
+      </section>
+
+      <!-- Products -->
+      <section class="view" id="view-products" aria-labelledby="prodHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="prodHeading">Catalogue</h1><p class="view-sub">Wholesale product catalogue and stock levels.</p></div>
+          <button class="primary" id="addProductBtn" data-role-min="manager" hidden><i data-lucide="plus" aria-hidden="true"></i> New product</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="productsTable">
+            <thead><tr>
+              <th scope="col"><span class="visually-hidden">Image</span></th>
+              <th scope="col">SKU</th><th scope="col">Name</th><th scope="col">Category</th>
+              <th scope="col">Price</th><th scope="col">MOQ</th><th scope="col">Stock</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="productsPager"></div>
+      </section>
+
+      <!-- Orders -->
+      <section class="view" id="view-orders" aria-labelledby="ordHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="ordHeading">Orders</h1><p class="view-sub">Track and advance wholesale orders through fulfilment.</p></div>
+          <div class="select-wrap">
+            <label class="visually-hidden" for="statusFilter">Filter orders by status</label>
+            <select id="statusFilter">
+              <option value="">All statuses</option>
+              <option value="received">Received</option>
+              <option value="processing">Processing</option>
+              <option value="dispatched">Dispatched</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div id="ordersList"></div>
+        <div id="ordersPager"></div>
+      </section>
+
+      <!-- CRM: Customers -->
+      <section class="view" id="view-customers" aria-labelledby="custHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="custHeading">Customers</h1><p class="view-sub">Customer relationship management and contact information.</p></div>
+          <button class="primary" id="addCustomerBtn" data-role-min="crm_manager" hidden><i data-lucide="user-plus" aria-hidden="true"></i> New customer</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="customersTable">
+            <thead><tr>
+              <th scope="col">Company</th>
+              <th scope="col">Contact</th>
+              <th scope="col">Email</th>
+              <th scope="col">Phone</th>
+              <th scope="col">Status</th>
+              <th scope="col">Lifetime Value</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CRM: Interactions -->
+      <section class="view" id="view-interactions" aria-labelledby="intHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="intHeading">Interactions</h1><p class="view-sub">Customer interactions: calls, emails, meetings, and notes.</p></div>
+          <button class="primary" id="addInteractionBtn" data-role-min="crm_manager" hidden><i data-lucide="plus" aria-hidden="true"></i> New interaction</button>
+        </div>
+        <div id="interactionsList"></div>
+      </section>
+
+      <!-- WMS: Warehouses -->
+      <section class="view" id="view-warehouses" aria-labelledby="whHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="whHeading">Warehouses</h1><p class="view-sub">Warehouse locations and capacity management.</p></div>
+          <button class="primary" id="addWarehouseBtn" data-role-min="wms_manager" hidden><i data-lucide="plus" aria-hidden="true"></i> New warehouse</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="warehousesTable">
+            <thead><tr>
+              <th scope="col">Name</th>
+              <th scope="col">Location</th>
+              <th scope="col">Current Stock</th>
+              <th scope="col">Capacity</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- WMS: Inventory -->
+      <section class="view" id="view-inventory" aria-labelledby="invHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="invHeading">Inventory</h1><p class="view-sub">Stock levels by warehouse and product.</p></div>
+        </div>
+        <div id="inventoryList"></div>
+      </section>
+
+      <!-- WMS: Stock Movements -->
+      <section class="view" id="view-stock-movements" aria-labelledby="movHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="movHeading">Stock Movements</h1><p class="view-sub">Inbound, outbound, and inventory adjustments.</p></div>
+          <button class="primary" id="addMovementBtn" data-role-min="wms_manager" hidden><i data-lucide="plus" aria-hidden="true"></i> New movement</button>
+        </div>
+        <div id="movementsList"></div>
+      </section>
+
+      <!-- ERP: Purchase Orders -->
+      <section class="view" id="view-purchase-orders" aria-labelledby="poHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="poHeading">Purchase Orders</h1><p class="view-sub">Supplier purchase orders and receiving.</p></div>
+          <button class="primary" id="addPOBtn" data-role-min="erp_manager" hidden><i data-lucide="plus" aria-hidden="true"></i> New PO</button>
+        </div>
+        <div id="poList"></div>
+      </section>
+
+      <!-- ERP: Reports -->
+      <section class="view" id="view-reports" aria-labelledby="repHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="repHeading">Reports</h1><p class="view-sub">Business intelligence and analytics.</p></div>
+        </div>
+        <div id="reportsList"></div>
+      </section>
+
+      <!-- Users (admin only) -->
+      <section class="view" id="view-users" aria-labelledby="usersHeading" hidden>
+        <div class="view-head">
+          <div><h1 id="usersHeading">Users</h1><p class="view-sub">Back-office accounts and their access level.</p></div>
+          <button class="primary" id="addUserBtn"><i data-lucide="user-plus" aria-hidden="true"></i> New user</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="usersTable">
+            <thead><tr>
+              <th scope="col">User</th>
+              <th scope="col">Username</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+              <th scope="col">Created</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Product modal -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <form class="modal" id="productForm" role="dialog" aria-modal="true" aria-labelledby="modalTitle" novalidate>
+      <h2 id="modalTitle">New product</h2>
+      <input type="hidden" id="p-id" />
+      <div class="modal-row two">
+        <label>SKU <input type="text" id="p-sku" placeholder="CLT-XX-000" required /></label>
+        <label>Category <input type="text" id="p-category" placeholder="e.g. Hoodies" required /></label>
+      </div>
+      <label>Name <input type="text" id="p-name" placeholder="Product name" required /></label>
+      <div class="modal-row three">
+        <label>Unit price <input type="number" id="p-price" step="0.01" min="0" placeholder="0.00" required /></label>
+        <label>MOQ <input type="number" id="p-moq" min="1" value="1" required /></label>
+        <label>Stock <input type="number" id="p-stock" min="0" value="0" required /></label>
+      </div>
+      <label>Image URL <span class="label-hint">optional — leave blank to use the category photo</span>
+        <input type="url" id="p-image" placeholder="https://…" />
+      </label>
+      <div class="img-preview" id="imgPreview" hidden><img id="imgPreviewEl" alt="Product image preview" /></div>
+      <p class="modal-error" id="modalError" role="alert" aria-live="assertive"></p>
+      <div class="modal-actions">
+        <button type="button" class="ghost" id="cancelModal">Cancel</button>
+        <button type="submit" class="primary" id="saveProductBtn"><i data-lucide="save" aria-hidden="true"></i> Save</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- User modal -->
+  <div class="modal-overlay" id="userModalOverlay" hidden>
+    <form class="modal" id="userForm" role="dialog" aria-modal="true" aria-labelledby="userModalTitle" novalidate>
+      <h2 id="userModalTitle">New user</h2>
+      <input type="hidden" id="u-id" />
+      <div class="modal-row two">
+        <label>Username <input type="text" id="u-username" placeholder="jane.doe" autocomplete="off" required /></label>
+        <label>Full name <input type="text" id="u-fullname" placeholder="Jane Doe" required /></label>
+      </div>
+      <div class="modal-row two">
+        <label>Role
+          <select id="u-role">
+            <option value="viewer">Viewer — read-only access</option>
+            <option value="staff">Staff — view &amp; advance orders</option>
+            <option value="warehouse_staff">Warehouse Staff — manage inventory &amp; stock</option>
+            <option value="sales_rep">Sales Rep — CRM &amp; customer management</option>
+            <option value="crm_manager">CRM Manager — customer relationships &amp; interactions</option>
+            <option value="wms_manager">WMS Manager — warehouse &amp; inventory management</option>
+            <option value="manager">Manager — manage catalogue &amp; orders</option>
+            <option value="erp_manager">ERP Manager — enterprise resource planning</option>
+            <option value="admin">Admin — full access &amp; user management</option>
+          </select>
+        </label>
+        <label>Status
+          <select id="u-active">
+            <option value="true">Active</option>
+            <option value="false">Disabled</option>
+          </select>
+        </label>
+      </div>
+      <label id="u-password-field">Password <span class="label-hint" id="u-password-hint">at least 8 characters</span>
+        <input type="password" id="u-password" autocomplete="new-password" placeholder="••••••••" />
+      </label>
+      <p class="modal-error" id="userModalError" role="alert" aria-live="assertive"></p>
+      <div class="modal-actions">
+        <button type="button" class="ghost" id="cancelUserModal">Cancel</button>
+        <button type="submit" class="primary" id="saveUserBtn"><i data-lucide="save" aria-hidden="true"></i> Save</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Confirm dialog (replaces native confirm) -->
+  <div class="modal-overlay" id="confirmOverlay" hidden>
+    <div class="modal confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmBody">
+      <h2 id="confirmTitle">Confirm</h2>
+      <p id="confirmBody" class="confirm-body"></p>
+      <div class="modal-actions">
+        <button type="button" class="ghost" id="confirmCancel">Cancel</button>
+        <button type="button" class="danger" id="confirmOk">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+
+  <script src="/admin/admin.js" defer></script>
+  <script>
+    // Ensure Lucide icons are created after all scripts load
+    function ensureIcons() {
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      } else {
+        setTimeout(ensureIcons, 100);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(ensureIcons, 100);
+    });
+  </script>
+</body>
+</html>

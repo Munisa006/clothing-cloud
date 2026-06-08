@@ -1,0 +1,103 @@
+# CI/CD pipeline for the cloud portal.
+#
+# This is the concrete implementation of the continuous integration and
+# continuous delivery pipeline described in the report. On every push it
+# installs dependencies, runs a smoke test of the API against a throwaway
+# Postgres service, builds the Docker image, and (on the main branch) would
+# push that image to a registry and trigger a rolling deployment to the
+# auto-scaling group. The deploy step is left as a documented placeholder
+# because it depends on the chosen cloud provider's credentials.
+
+name: ci-cd
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: portal_password
+          POSTGRES_DB: portal
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portal"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Run tests (unit + API integration against Postgres)
+        working-directory: backend
+        env:
+          DB_HOST: localhost
+          DB_USER: portal
+          DB_PASSWORD: portal_password
+          DB_NAME: portal
+          ADMIN_USER: admin
+          ADMIN_PASSWORD: admin123
+          SESSION_SECRET: ci-test-secret
+        run: npm test
+
+      - name: Smoke test the running server
+        working-directory: backend
+        env:
+          DB_HOST: localhost
+          DB_USER: portal
+          DB_PASSWORD: portal_password
+          DB_NAME: portal
+          PORT: 3000
+        run: |
+          node server.js &
+          APP_PID=$!
+          # give the app time to connect to the database and seed
+          sleep 6
+          echo "Checking health endpoint…"
+          curl -fsS http://localhost:3000/health
+          echo "Checking products endpoint…"
+          curl -fsS http://localhost:3000/api/products | head -c 200
+          kill $APP_PID
+
+  build-image:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t clothing-cloud-portal:${{ github.sha }} .
+
+      # The deployment stage below is the rolling release described in the
+      # report. It is commented out because it needs cloud credentials stored
+      # as repository secrets. Once those exist, this pushes the image and asks
+      # the auto-scaling group to replace its instances gradually, with no
+      # downtime.
+      #
+      # - name: Push image and deploy (rolling)
+      #   if: github.ref == 'refs/heads/main'
+      #   run: |
+      #     echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+      #     docker tag clothing-cloud-portal:${{ github.sha }} $REGISTRY/portal:latest
+      #     docker push $REGISTRY/portal:latest
+      #     ./scripts/rolling-deploy.sh

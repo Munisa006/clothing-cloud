@@ -1,0 +1,21 @@
+{
+  "name": "clothing-cloud-portal-backend",
+  "version": "1.0.0",
+  "description": "Dynamic Node.js portal (storefront + admin) for a wholesale clothing distributor, deployed on a cloud network. Unit 6: Networking in the Cloud.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test",
+    "hash-password": "node scripts/hash-password.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Munisa Rakhmonova",
+  "license": "MIT"
+}

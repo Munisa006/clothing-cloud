@@ -1,0 +1,88 @@
+# docker-compose for local development and for demonstrating the cloud design
+# on a single machine.
+#
+# The default `docker compose up` runs one app instance and the database — the
+# minimum needed to use the portal. To demonstrate the load-balancing and
+# horizontal-scaling story from the report, start the "loadbalanced" profile,
+# which adds a second app instance and an nginx load balancer in front of both:
+#
+#   docker compose up                          # single instance + database
+#   docker compose --profile loadbalanced up   # nginx + two app instances + db
+#
+# This mirrors the cloud architecture: the database sits in its own container
+# (the private database subnet), the app instances are interchangeable (the
+# private application subnet), and the load balancer is the single public entry
+# point.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-portal}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-portal_password}
+      POSTGRES_DB: ${DB_NAME:-portal}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-portal}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Default single instance, published directly on :3000
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_USER: ${DB_USER:-portal}
+      DB_PASSWORD: ${DB_PASSWORD:-portal_password}
+      DB_NAME: ${DB_NAME:-portal}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-me}
+      INSTANCE_ID: web-1
+    ports:
+      - "3000:3000"
+
+  # Second instance, only started under the "loadbalanced" profile
+  web2:
+    build: .
+    restart: unless-stopped
+    profiles: ["loadbalanced"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_USER: ${DB_USER:-portal}
+      DB_PASSWORD: ${DB_PASSWORD:-portal_password}
+      DB_NAME: ${DB_NAME:-portal}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-me}
+      INSTANCE_ID: web-2
+
+  # nginx load balancer, only started under the "loadbalanced" profile.
+  # It round-robins between web and web2 on :8080, demonstrating how the cloud
+  # load balancer spreads requests across interchangeable app instances.
+  loadbalancer:
+    image: nginx:alpine
+    profiles: ["loadbalanced"]
+    depends_on:
+      - web
+      - web2
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:
